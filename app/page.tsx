@@ -1,65 +1,231 @@
-import Image from "next/image";
+"use client";
+
+import { useMemo, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { addToCart } from "../store/cartSlice";
+import { setCategory } from "../store/filterSlice";
+import { toggleTheme } from "../store/themeSlice";
+import { RootState } from "../store/store";
+
+const movies = [
+  {
+    id: 1,
+    title: "Avengers endgame",
+    category: "Action",
+    image: "https://i.etsystatic.com/12729518/r/il/7e8166/1996409065/il_570xN.1996409065_pbs3.jpg",
+  },
+  {
+    id: 2,
+    title: "Batman",
+    category: "Action",
+    image: "https://m.media-amazon.com/images/I/51LZjVjpTjL._AC_UF1000,1000_QL80_.jpg",
+  },
+  {
+    id: 3,
+    title: "Titanic",
+    category: "Drama",
+    image: "https://www.originalfilmart.com/cdn/shop/products/titanic_1997_original_film_art_713cc08c-5fe2-49d1-bd32-51a1d5890d43_5000x.jpg?v=1675533926",
+  },
+  {
+    id: 4,
+    title: "Joker",
+    category: "Drama",
+    image: "https://m.media-amazon.com/images/I/81V0EHAIX+L._AC_UF894,1000_QL80_.jpg",
+  },
+];
 
 export default function Home() {
+  const dispatch = useDispatch();
+
+  const theme = useSelector(
+    (state: RootState) => state.theme.mode
+  );
+
+  const category = useSelector(
+    (state: RootState) => state.filters.category
+  );
+
+  const cartItems = useSelector(
+    (state: RootState) => state.cart.items
+  );
+
+  const handleAddToFavorites = useCallback(
+    (movie: {
+      id: number;
+      title: string;
+      category: string;
+    }) => {
+      dispatch(addToCart(movie));
+    },
+    [dispatch]
+  );
+
+  const filteredMovies = useMemo(() => {
+    return movies.filter(
+      (movie) =>
+        category === "All" ||
+        movie.category === category
+    );
+  }, [category]);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div
+      style={{
+        padding: "30px",
+        minHeight: "100vh",
+        backgroundColor: theme === "dark" ? "#111" : "#f5f5f5",
+        color: theme === "dark" ? "white" : "black",
+        transition: "all 0.3s ease",
+        fontFamily: "Arial, sans-serif",
+      }}
+    >
+      <h1
+        style={{
+          textAlign: "center",
+          marginBottom: "20px",
+        }}
+      >
+        🎬 Movie App with Redux
+      </h1>
+
+      <button
+  onClick={() => dispatch(toggleTheme())}
+  style={{
+    backgroundColor: theme === "dark" ? "#fbbf24" : "#1f2937",
+    color: theme === "dark" ? "#000" : "#fff",
+    border: "none",
+    padding: "12px 20px",
+    borderRadius: "10px",
+    cursor: "pointer",
+    fontSize: "16px",
+    fontWeight: "bold",
+    marginBottom: "15px",
+    transition: "0.3s ease",
+  }}
+>
+  {theme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode"}
+</button>
+
+      <h3>Current Theme: {theme}</h3>
+
+      <h2>❤️ Favorites: {cartItems.length}</h2>
+
+      <div
+  style={{
+    marginTop: "15px",
+    marginBottom: "20px",
+  }}
+>
+  <h3>Favorite Movies</h3>
+
+  {cartItems.length === 0 ? (
+    <p>No favorites added yet.</p>
+  ) : (
+    <ul>
+      {cartItems.map((movie: any, index: number) => (
+        <li key={index}>{movie.title}</li>
+      ))}
+    </ul>
+  )}
+</div>
+
+      <div
+  style={{
+    display: "flex",
+    gap: "12px",
+    marginBottom: "25px",
+    flexWrap: "wrap",
+  }}
+>
+  {["All", "Action", "Drama"].map((genre) => (
+    <button
+      key={genre}
+      onClick={() => dispatch(setCategory(genre))}
+      style={{
+        padding: "10px 15px",
+        borderRadius: "25px",
+        border: "none",
+        cursor: "pointer",
+        fontWeight: "bold",
+        transition: "0.3s",
+        backgroundColor:
+          category === genre
+            ? "#2563eb"
+            : theme === "dark"
+            ? "#374151"
+            : "#e5e7eb",
+        color:
+          category === genre
+            ? "white"
+            : theme === "dark"
+            ? "white"
+            : "black",
+      }}
+    >
+      {genre}
+    </button>
+  ))}
+</div>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns:"repeat(auto-fit, minmax(250px, 300px))",
+          justifyContent: "center",
+          gap: "20px",
+        }}
+      >
+        {filteredMovies.map((movie) => (
+          <div
+            key={movie.id}
+            style={{
+              border: "1px solid gray",
+              borderRadius: "12px",
+              padding: "10px",
+              backgroundColor:
+                theme === "dark" ? "#222" : "white",
+              boxShadow:
+                "0 4px 8px rgba(0,0,0,0.1)",
+            }}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+            <h3>{movie.title}</h3>
+            <p>{movie.category}</p>
+
+            <img
+            src={movie.image}
+            alt={movie.title}
+            style={{
+              width: "100%",
+              height: "220px",
+              borderRadius: "10px",
+              marginBottom: "10px",
+              }}
+            /> 
+
+            <h3>{movie.title}</h3>
+
+            <button
+            onClick={() => handleAddToFavorites(movie)}
+             style={{
+              backgroundColor: "#e11d48",
+              color: "white",
+              border: "none",
+              padding: "12px 20px",
+              borderRadius: "10px",
+              cursor: "pointer",
+              fontSize: "16px",
+              fontWeight: "bold",
+              width: "100%",
+              marginTop: "10px",
+              transition: "0.3s",
+  }
+}
+>
+  ❤️ Add To Favorites
+</button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
