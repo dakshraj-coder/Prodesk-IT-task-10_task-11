@@ -1,12 +1,25 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+
+interface Movie {
+  id: number;
+  title: string;
+  category: string;
+  image?: string;
+}
+
+interface CartState {
+  items: Movie[];
+}
+
+const initialState: CartState = {
+  items: [],
+};
 
 const cartSlice = createSlice({
   name: "cart",
-  initialState: {
-    items: [],
-  },
+  initialState,
   reducers: {
-    addToCart: (state, action) => {
+    addToCart: (state, action: PayloadAction<Movie>) => {
       state.items.push(action.payload);
     },
   },
